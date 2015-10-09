@@ -11,7 +11,7 @@
     </thead>
     <tbody>
       {% for user in users %}
-        <tr onclick="document.location = '{{ url_for('admin.user', username=user.username) }}'">
+        <tr onclick="document.location = '{{ url_for('admin.user', username=user['Username']) }}'">
         {% for key, val in user.items() %}
           <td>{{ val }}</td>
         {% endfor %}

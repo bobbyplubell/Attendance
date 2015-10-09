@@ -49,7 +49,7 @@ def user(username):
     form = EditUserForm()
 
     if form.validate_on_submit():
-#        print(form.userid + " SDfsdfsdfsdf")
+        print(str(form.userid.data) + " SDfsdfsdfsdf")
         user.username = form.username.data
         newtime = datetime.timedelta(0,pytimeparse.timeparse.timeparse(form.totaltime.data))
         user.clock.total_time = newtime

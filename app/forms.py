@@ -20,7 +20,6 @@ def username_exists():
         if not hasattr(form, 'userid'):    
             if user:
                 raise ValidationError(message)
-                print("t")
         else:
             if user and not user.id == int(form.userid.data):
                 raise ValidationError(message)
@@ -49,7 +48,7 @@ class EditUserForm(Form):
 
     def setuser(self, user):
         self.user = user
-        self.userid = str(self.user.id)
+        self.userid.data = self.user.id
         self.fullname.data = self.user.fullname
         self.username.data = self.user.username
         self.is_in.data = self.user.clock._is_in

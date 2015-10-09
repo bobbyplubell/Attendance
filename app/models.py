@@ -8,7 +8,7 @@ from . import db, login_manager
 class User(UserMixin, db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(32), unique=True)
+    _username = db.Column(db.String(32), unique=True)
     email = db.Column(db.String(32), unique=True)
     _password_hash = db.Column(db.String(128))
     _password_salt = db.Column(db.String(32))
@@ -34,6 +34,14 @@ class User(UserMixin, db.Model):
         if(username == self.username and self.verify_password(password)):
             return self
         return None
+
+    @property
+    def username(self):
+        return self._username
+
+    @username.setter
+    def username(self, username):
+        self._username = username
 
     @property
     def password(self):
