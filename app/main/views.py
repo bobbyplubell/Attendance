@@ -5,15 +5,6 @@ from . import main
 from ..models import User,Clock
 from .. import db
 
-@main.route('/users')
-def users():
-    userjsons = []
-    userobjs = User.query.limit(100)
-    for u in userobjs:
-        userjsons.append(u.to_json())
-    return render_template('users.html', users=userjsons)
-
-
 @main.route('/newuser', methods=['GET','POST'])
 def newuser():
     form = NewUserForm()
@@ -61,11 +52,3 @@ def clock_in():
         return redirect(url_for('main.clock_in'))
 
     return render_template('form.html', form=form)
-
-@main.route('/login', methods=['GET','POST'])
-def login():
-    form = LogInForm()
-
-    if form.validate_on_submit():
-        username = form.username.data.lower()
-

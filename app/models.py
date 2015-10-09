@@ -1,10 +1,11 @@
+from flask.ext.login import UserMixin
 from datetime import datetime, timedelta
 import hashlib
 import os
 
 from . import db, login_manager
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(32), unique=True)
@@ -12,6 +13,7 @@ class User(db.Model):
     _password_hash = db.Column(db.String(128))
     _password_salt = db.Column(db.String(32))
     fullname = db.Column(db.String(32))
+    is_admin = db.Column(db.Boolean(), default=False)
     clock = db.relationship("Clock", uselist=False, backref="users")
     
     def __init__(self, fullname, username, password, email=None):
@@ -19,7 +21,19 @@ class User(db.Model):
         self.fullname = fullname.title()
         self.username = username
         self.email = email
+        self.is_admin = False
         self.clock = Clock()
+
+
+    @staticmethod
+    def authenticate(username, password):
+        user = User.query.filter_by(username=username).first()
+        return user._authenticate(username, password)
+
+    def _authenticate(self, username, password):        
+        if(username == self.username and self.verify_password(password)):
+            return self
+        return None
 
     @property
     def password(self):
@@ -53,6 +67,7 @@ class User(db.Model):
 
     def to_json(self):
         json = {
+            'ID': self.id,
             'Username': self.username,
             'Fullname': self.fullname,
             'Is In': str(self.clock._is_in),
@@ -60,18 +75,23 @@ class User(db.Model):
         }
         return json
 
-    #### Login Methods ####
-    def is_authenticated(self):
-        return True
-
-    def is_active(self):
-        return True
-
-    def is_anonymous(self):
-        return False
-
-    def get_id():
-        return unicode(self.id)
+'''
+    @staticmethod
+    def from_json(jsondata):
+        userid = jsondata['ID']
+        user = User.query.filter_by(id=userid).first()
+        if(user is not None):
+            if "username" in jsondata:
+                user.username = jsondata['username']
+            if "fullname" in jsondata:
+                user.fullname = jsondata['fullname']
+            if "is_in" in jsondata:
+                user.clock._is_in = bool(jsondata['is_in'])
+            if "total_time" in jsondata:
+                user.clock.total_time = jsondata['total_time']
+            db.session.add(user)
+            db.session.commit()
+'''
 
 @login_manager.user_loader
 def load_user(user_id):
