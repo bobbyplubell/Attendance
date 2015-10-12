@@ -2,23 +2,35 @@ from flask.ext.login import UserMixin
 from datetime import datetime, timedelta
 import hashlib
 import os
+from dateutil import rrule
 
-from . import db, login_manager
+from . import db, bcrypt, login_manager
+
+class Event(db.Model):
+    __tablename__ = "events"
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(32))
+    desc = db.Column(db.String(128))
+    recur = db.Column(db.PickleType())
+
+    def __init__(self, name, desc=None, recur=None):
+        self.name = name
+        self.desc = desc
+        self.recur = recur
 
 class User(UserMixin, db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
-    _username = db.Column(db.String(32), unique=True)
+    username = db.Column(db.String(32), unique=True)
     email = db.Column(db.String(32), unique=True)
     _password_hash = db.Column(db.String(128))
-    _password_salt = db.Column(db.String(32))
-    fullname = db.Column(db.String(32))
+    _fullname = db.Column(db.String(32))
     is_admin = db.Column(db.Boolean(), default=False)
     clock = db.relationship("Clock", uselist=False, backref="users")
     
     def __init__(self, fullname, username, password, email=None):
         self.password = password
-        self.fullname = fullname.title()
+        self.fullname = fullname
         self.username = username
         self.email = email
         self.is_admin = False
@@ -36,12 +48,12 @@ class User(UserMixin, db.Model):
         return None
 
     @property
-    def username(self):
-        return self._username
+    def fullname(self):
+        return self._fullname.title()
 
-    @username.setter
-    def username(self, username):
-        self._username = username
+    @fullname.setter
+    def fullname(self, fullname):
+        self._fullname = fullname.title()
 
     @property
     def password(self):
@@ -49,29 +61,16 @@ class User(UserMixin, db.Model):
 
     @password.setter
     def password(self, password):
-        self._password_salt = User.generate_password_salt(32)
-        self._password_hash = User.generate_password_hash(self._password_salt, password)
+        self._password_hash = User.generate_password_hash(password)
 
     def verify_password(self, password):
-        if(User.generate_password_hash(self._password_salt, password) == self._password_hash):
+        if(bcrypt.check_password_hash(self._password_hash, password)):
             return True
         return False
 
     @staticmethod
-    def generate_password_salt(length):
-        #returns a (hopefully) cryptographically secure random string
-        return ''.join(list(map(chr, os.urandom(length))))
-
-    @staticmethod
-    def generate_password_hash(salt, password):
-        #spookiest hashing function in existence
-        saltedpassword = (salt + password).encode('utf-8')
-        h = hashlib.sha256()
-        h.update(saltedpassword)
-        hashed = h.digest()
-        round2 = (salt + str(hashed)).encode('utf-8')
-        h.update(round2)
-        return h.digest()
+    def generate_password_hash(password):
+        return bcrypt.generate_password_hash(password)
 
     def to_json(self):
         json = {

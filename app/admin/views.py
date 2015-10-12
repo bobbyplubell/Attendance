@@ -2,13 +2,16 @@ from flask import Markup, request, render_template, redirect, url_for, abort, fl
 from flask.ext.login import fresh_login_required, login_required, login_user, logout_user
 import datetime
 import pytimeparse
+from dateutil import rrule
 
-from ..forms import LogInForm, EditUserForm
+from ..forms import LogInForm
+from .forms import EditUserForm
 from . import admin
 from ..models import User,Clock
 from .. import db
 
 @admin.route('/login', methods=['GET','POST'])
+@admin.route('/', methods=['GET', 'POST'])
 def login():
     form = LogInForm()
 

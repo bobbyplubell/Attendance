@@ -1,6 +1,6 @@
 from flask import Markup, render_template, redirect, url_for, abort, flash, request, current_app, make_response
 
-from .forms import LogInForm, NewUserForm
+from ..forms import LogInForm, NewUserForm
 from . import main
 from ..models import User,Clock
 from .. import db
@@ -23,6 +23,7 @@ def newuser():
     return render_template('form.html', form=form)
 
 @main.route('/clock_in', methods=['GET','POST'])
+@main.route('/', methods=['GET','POST'])
 def clock_in():
     form = LogInForm()
 

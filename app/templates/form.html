@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% import "bootstrap/wtf.html" as wtf %}
 
+{% block scripts %}
+{{ super() }}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.4.1/js/bootstrap-datepicker.js"></script>
+
+{% endblock %}
+
 {% block page_content %}
 {{ wtf.quick_form(form) }}
 {% endblock %}
